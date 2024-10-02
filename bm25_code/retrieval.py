@@ -14,8 +14,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from rank_bm25 import BM25Okapi # BM25 추가
 from tqdm.auto import tqdm
 
-from preprocessing import preprocess_contexts
-
 seed = 2024
 random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
@@ -68,14 +66,13 @@ class SparseRetrieval:
         )  # set 은 매번 순서가 바뀌므로
         print(f"Lengths of unique contexts : {len(self.contexts)}")
         self.ids = list(range(len(self.contexts)))
-        
-        self.contexts = preprocess_contexts(self.contexts)
+
         self.ids = list(range(len(self.contexts)))
         
-        # # Transform by vectorizer
-        # self.tfidfv = TfidfVectorizer(
-        #     tokenizer=tokenize_fn, ngram_range=(1, 2), max_features=50000,
-        # )
+        # Transform by vectorizer
+        self.tfidfv = TfidfVectorizer(
+            tokenizer=tokenize_fn, ngram_range=(1, 2), max_features=50000,
+        )
         
         # 텍스트 토크나이징
         self.tokenized_contexts = [tokenize_fn(doc) for doc in self.contexts]

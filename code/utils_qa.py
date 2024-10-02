@@ -52,11 +52,19 @@ def set_seed(seed: int = 42):
 
 
 def postprocess_qa_predictions(
+<<<<<<< HEAD
     examples,
     features,
     predictions: Tuple[np.ndarray, np.ndarray],
     version_2_with_negative: bool = False,
     n_best_size: int = 20,
+=======
+    examples, # 문자로 이루어진 문서
+    features, # 문서 -> 토큰화 -> 숫자로 이루어짐
+    predictions: Tuple[np.ndarray, np.ndarray], # 시작지점, 끝지점
+    version_2_with_negative: bool = False,
+    n_best_size: int = 20, 
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
     max_answer_length: int = 30,
     null_score_diff_threshold: float = 0.0,
     output_dir: Optional[str] = None,
@@ -94,12 +102,20 @@ def postprocess_qa_predictions(
         is_world_process_zero (:obj:`bool`, `optional`, defaults to :obj:`True`):
             이 프로세스가 main process인지 여부(logging/save를 수행해야 하는지 여부를 결정하는 데 사용됨)
     """
+<<<<<<< HEAD
     assert (
+=======
+    assert ( # 맨처음 길이가 2가 아니면 오류 -> 걸러냄
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
         len(predictions) == 2
     ), "`predictions` should be a tuple with two elements (start_logits, end_logits)."
     all_start_logits, all_end_logits = predictions
 
+<<<<<<< HEAD
     assert len(predictions[0]) == len(
+=======
+    assert len(predictions[0]) == len( 
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
         features
     ), f"Got {len(predictions[0])} predictions and {len(features)} features."
 
@@ -136,7 +152,12 @@ def postprocess_qa_predictions(
             end_logits = all_end_logits[feature_index]
             # logit과 original context의 logit을 mapping합니다.
             offset_mapping = features[feature_index]["offset_mapping"]
+<<<<<<< HEAD
             # Optional : `token_is_max_context`, 제공되는 경우 현재 기능에서 사용할 수 있는 max context가 없는 answer를 제거합니다
+=======
+            # token_is_max_context는 개별 토큰에 대해 결정되며, 해당 토큰이 가장 많은 컨텍스트 정보를 가진 청크에 속할 때 True가 된다. 
+            # 이는 긴 문서를 여러 청크로 나눌 때 중복을 처리하고 가장 관련성 높은 정보를 선택하는 데 도움이 된다
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
             token_is_max_context = features[feature_index].get(
                 "token_is_max_context", None
             )
@@ -183,7 +204,11 @@ def postprocess_qa_predictions(
                         and not token_is_max_context.get(str(start_index), False)
                     ):
                         continue
+<<<<<<< HEAD
                     prelim_predictions.append(
+=======
+                    prelim_predictions.append( #ans 로 바꿀 수 있는 후보군
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
                         {
                             "offsets": (
                                 offset_mapping[start_index][0],

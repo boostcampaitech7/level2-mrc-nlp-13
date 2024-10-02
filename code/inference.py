@@ -72,12 +72,20 @@ def main():
     config = AutoConfig.from_pretrained(
         model_args.config_name
         if model_args.config_name
+<<<<<<< HEAD
         else model_args.model_name_or_path,
+=======
+        else model_args.model_name_or_path, # 디폴트 값으로 autoconfig
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name
         if model_args.tokenizer_name
+<<<<<<< HEAD
         else model_args.model_name_or_path,
+=======
+        else model_args.model_name_or_path, # 디폴트 값으로 autoconfig
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
         use_fast=True,
     )
     model = AutoModelForQuestionAnswering.from_pretrained(
@@ -102,7 +110,11 @@ def run_sparse_retrieval(
     datasets: DatasetDict,
     training_args: TrainingArguments,
     data_args: DataTrainingArguments,
+<<<<<<< HEAD
     data_path: str = "/data/ephemeral/home/sungeun/level2-mrc-nlp-13/code/data",
+=======
+    data_path: str = "../data",
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
     context_path: str = "wikipedia_documents.json",
 ) -> DatasetDict:
 

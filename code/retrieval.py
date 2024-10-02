@@ -18,11 +18,17 @@ random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
 
 
+<<<<<<< HEAD
+=======
+# TF-IDF 방식으로 문서나 텍스트를 벡터화
+# 질문이 들어왔을 때 그 질문과 가장 유사한 문서를 검색하는 역할을 하는 것
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
 
 @contextmanager
 def timer(name):
     t0 = time.time()
     yield
+<<<<<<< HEAD
     print(f"[{name}] done in {time.time() - t0:.3f} s")
 
 
@@ -32,6 +38,19 @@ class SparseRetrieval:
         tokenize_fn,
         data_path: Optional[str] = "../data/",
         context_path: Optional[str] = "wikipedia_documents.json",
+=======
+    print(f"[{name}] done in {time.time() - t0:.3f} s") # 말 그대로 타이머
+
+
+class SparseRetrieval: 
+    # one-hot embedding 처럼, 쿼리와 문서 간의 희소한 벡터 표현을 사용하여 문서를 검색
+    # 여기에서는 , query 에 맞는 문서를 찾는 역할이 될 듯?
+    def __init__(
+        self,
+        tokenize_fn,
+        data_path: Optional[str] = "../data/", # data 보관 경로
+        context_path: Optional[str] = "wikipedia_documents.json", # wiki context 를 가져옴
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
     ) -> NoReturn:
 
         """
@@ -49,7 +68,12 @@ class SparseRetrieval:
             context_path:
                 Passage들이 묶여있는 파일명입니다.
 
+<<<<<<< HEAD
             data_path/context_path가 존재해야합니다.
+=======
+            data_path/context_path가 존재해야합니다. 
+            -> 기본 set 의 경우 data/wiki~
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
 
         Summary:
             Passage 파일을 불러오고 TfidfVectorizer를 선언하는 기능을 합니다.
@@ -66,12 +90,35 @@ class SparseRetrieval:
         self.ids = list(range(len(self.contexts)))
 
         # Transform by vectorizer
+<<<<<<< HEAD
         self.tfidfv = TfidfVectorizer(
             tokenizer=tokenize_fn, ngram_range=(1, 2), max_features=50000,
         )
 
         self.p_embedding = None  # get_sparse_embedding()로 생성합니다
         self.indexer = None  # build_faiss()로 생성합니다.
+=======
+        
+        # scikit-learn의 클래스를 사용해 텍스트 데이터를 TF-IDF 방식으로 벡터화하는 과정
+        
+        # tokenize_fn : 토큰나이저 function
+        
+        # ngram_range : (1, 2)는 1-gram(단어 단위)과 2-gram(2개의 단어 묶음)까지를 벡터화할 때 사용하겠다는 의미
+        # i love cat -> "i" "love" "cat" / "i love" "love cat"
+        
+        # max_features : 50,000개의 가장 중요한(빈도나 중요도에 따라) 단어만을 벡터화에 사용하고, 나머지 단어들은 무시
+        
+        self.tfidfv = TfidfVectorizer(
+            tokenizer=tokenize_fn, ngram_range=(1, 2), max_features=50000,
+        ) 
+
+
+        self.p_embedding = None  # get_sparse_embedding()로 생성합니다
+        # 이 함수는 TF-IDF나 Bag of Words처럼 희소 벡터(sparse embedding)를 만드는 함수
+        self.indexer = None  # build_faiss()로 생성합니다.
+        # self.indexer는 텍스트 임베딩을 빠르게 검색하기 위해 FAISS 인덱스를 구축하고, 
+        # 이 인덱스를 활용해 유사도 기반 검색을 수행하게 될 것.
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
 
     def get_sparse_embedding(self) -> NoReturn:
 
@@ -85,17 +132,29 @@ class SparseRetrieval:
         # Pickle을 저장합니다.
         pickle_name = f"sparse_embedding.bin"
         tfidfv_name = f"tfidv.bin"
+<<<<<<< HEAD
         emd_path = os.path.join(self.data_path, pickle_name)
         tfidfv_path = os.path.join(self.data_path, tfidfv_name)
 
         if os.path.isfile(emd_path) and os.path.isfile(tfidfv_path):
+=======
+        emd_path = os.path.join(self.data_path, pickle_name) # 디폴트 값 /data
+        tfidfv_path = os.path.join(self.data_path, tfidfv_name)
+
+        if os.path.isfile(emd_path) and os.path.isfile(tfidfv_path): # 이미 있으면 불러오기
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
             with open(emd_path, "rb") as file:
                 self.p_embedding = pickle.load(file)
             with open(tfidfv_path, "rb") as file:
                 self.tfidfv = pickle.load(file)
             print("Embedding pickle load.")
+<<<<<<< HEAD
         else:
             print("Build passage embedding")
+=======
+        else: 
+            print("Build passage embedding") # 없으면 wb 하기 p_embedding , tfidfv 사용
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
             self.p_embedding = self.tfidfv.fit_transform(self.contexts)
             print(self.p_embedding.shape)
             with open(emd_path, "wb") as file:
@@ -276,7 +335,11 @@ class SparseRetrieval:
                 Dataset 형태는 query를 포함한 HF.Dataset을 받습니다.
                 이 경우 `get_relevant_doc_bulk`를 통해 유사도를 구합니다.
             topk (Optional[int], optional): Defaults to 1.
+<<<<<<< HEAD
                 상위 몇 개의 passage를 사용할 것인지 지정합니다.
+=======
+                상위 몇 개의 passage를 사용할 것인지 지정합니다. -> passage : 문서 내 일부 텍스트의 범위
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
 
         Returns:
             1개의 Query를 받는 경우  -> Tuple(List, List)
@@ -452,3 +515,13 @@ if __name__ == "__main__":
 
         with timer("single query by exhaustive search"):
             scores, indices = retriever.retrieve(query)
+<<<<<<< HEAD
+=======
+            
+'''python3 retrieval.py \
+    --dataset_name "./data/train_dataset" \
+    --model_name_or_path "bert-base-multilingual-cased" \
+    --data_path "./data" \
+    --context_path "wikipedia_documents" \
+    --use_faiss False  # True로 설정하면 FAISS 기반 검색을 사용함'''
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7

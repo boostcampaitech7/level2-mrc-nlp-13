@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import logging
+=======
+import logging # 디버깅 할때 사용
+>>>>>>> 73194be4eea4b3945d1021bca4e23d5fb144c5f7
 import os
 import sys
 import random

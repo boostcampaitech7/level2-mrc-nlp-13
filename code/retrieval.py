@@ -30,7 +30,7 @@ class SparseRetrieval:
     def __init__(
         self,
         tokenize_fn,
-        data_path: Optional[str] = "../data/",
+        data_path: Optional[str] = "/data/ephemeral/home/data",
         context_path: Optional[str] = "wikipedia_documents.json",
     ) -> NoReturn:
 
@@ -56,7 +56,8 @@ class SparseRetrieval:
         """
 
         self.data_path = data_path
-        with open(os.path.join(data_path, context_path), "r", encoding="utf-8") as f:
+        full_path = os.path.join(self.data_path, context_path)
+        with open(full_path, "r", encoding="utf-8") as f:
             wiki = json.load(f)
 
         self.contexts = list(

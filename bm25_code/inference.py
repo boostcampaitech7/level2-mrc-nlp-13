@@ -5,6 +5,7 @@ Open-Domain Question Answering 을 수행하는 inference 코드 입니다.
 """
 
 
+import os
 import logging
 import sys
 from typing import Callable, Dict, List, NoReturn, Tuple
@@ -18,9 +19,9 @@ from datasets import (
     Sequence,
     Value,
     load_from_disk,
-    load_metric,
 )
-from retrieval import SparseRetrieval
+import evaluate
+from retrieval import RetrievalBM25
 from trainer_qa import QuestionAnsweringTrainer
 from transformers import (
     AutoConfig,
@@ -50,6 +51,7 @@ def main():
 
     print(f"model is from {model_args.model_name_or_path}")
     print(f"data is from {data_args.dataset_name}")
+
 
     # logging 설정
     logging.basicConfig(
@@ -86,12 +88,6 @@ def main():
         config=config,
     )
 
-    # True일 경우 : run passage retrieval
-    if data_args.eval_retrieval:
-        datasets = run_sparse_retrieval(
-            tokenizer.tokenize, datasets, training_args, data_args,
-        )
-
     # eval or predict mrc model
     if training_args.do_eval or training_args.do_predict:
         run_mrc(data_args, training_args, model_args, datasets, tokenizer, model)
@@ -107,10 +103,9 @@ def run_sparse_retrieval(
 ) -> DatasetDict:
 
     # Query에 맞는 Passage들을 Retrieval 합니다.
-    retriever = SparseRetrieval(
+    retriever = RetrievalBM25(
         tokenize_fn=tokenize_fn, data_path=data_path, context_path=context_path
     )
-    retriever.get_sparse_embedding()
     
     df = retriever.retrieve(datasets["validation"], topk=data_args.top_k_retrieval)
 
@@ -153,13 +148,13 @@ def run_mrc(
     tokenizer,
     model,
 ) -> NoReturn:
-
     # eval 혹은 prediction에서만 사용함
     column_names = datasets["validation"].column_names
+    
 
     question_column_name = "question" if "question" in column_names else column_names[0]
     context_column_name = "context" if "context" in column_names else column_names[1]
-    answer_column_name = "answers" if "answers" in column_names else column_names[2]
+    answer_column_name = "answers" if "answers" in column_names else None
 
     # Padding에 대한 옵션을 설정합니다.
     # (question|context) 혹은 (context|question)로 세팅 가능합니다.
@@ -259,7 +254,7 @@ def run_mrc(
                 predictions=formatted_predictions, label_ids=references
             )
 
-    metric = load_metric("squad")
+    metric = evaluate.load("squad")
 
     def compute_metrics(p: EvalPrediction) -> Dict:
         return metric.compute(predictions=p.predictions, references=p.label_ids)

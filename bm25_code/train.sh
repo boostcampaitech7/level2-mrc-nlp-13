@@ -9,7 +9,7 @@ DOC_STRIDE=128
 MAX_ANSWER_LENGTH=30
 BATCH_SIZE=16
 LEARNING_RATE=5e-5
-NUM_EPOCHS=1
+NUM_EPOCHS=10
 
 python train.py \
     --model_name_or_path $MODEL_NAME \

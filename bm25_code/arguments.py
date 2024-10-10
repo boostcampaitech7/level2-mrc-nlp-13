@@ -33,7 +33,11 @@ class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
-
+    
+    use_faiss: bool = field(
+        default=False, 
+        metadata={"help": "Whether to use FAISS for retrieval."}
+    )
     dataset_name: Optional[str] = field(
         default="/data/ephemeral/home/data/train_dataset",
         metadata={"help": "The name of the dataset to use."},
@@ -68,7 +72,7 @@ class DataTrainingArguments:
         },
     )
     max_answer_length: int = field(
-        default=30,
+        default=100,
         metadata={
             "help": "The maximum length of an answer that can be generated. This is needed because the start "
             "and end predictions are not conditioned on one another."
@@ -87,6 +91,6 @@ class DataTrainingArguments:
             "help": "Define how many top-k passages to retrieve based on similarity."
         },
     )
-    use_faiss: bool = field(
-        default=False, metadata={"help": "Whether to build with faiss"}
+    retrieval_method: str = field(
+        default='bm25', metadata={'help': 'Choose retriever for passage retrieval'}
     )

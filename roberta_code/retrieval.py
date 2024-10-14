@@ -83,7 +83,7 @@ class SparseRetrieval:
         # 텍스트 토크나이징
         self.tokenized_contexts = [tokenize_fn(doc) for doc in self.contexts]
         # BM25 객체 생성
-        self.bm25 = BM25Okapi(self.tokenized_contexts)
+        self.bm25 = BM25Okapi(self.tokenized_contexts, k1=1.2, b=0.75)
 
         self.p_embedding = None  # get_sparse_embedding()로 생성합니다
         self.indexer = None  # build_faiss()로 생성합니다.

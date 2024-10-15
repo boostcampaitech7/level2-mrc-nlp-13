@@ -16,6 +16,8 @@ from rank_bm25 import BM25Okapi # BM25 추가
 from tqdm.auto import tqdm
 from collections import OrderedDict
 
+from konlpy.tag import Mecab
+
 seed = 2024
 random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
@@ -83,7 +85,7 @@ class SparseRetrieval:
         # 텍스트 토크나이징
         self.tokenized_contexts = [tokenize_fn(doc) for doc in self.contexts]
         # BM25 객체 생성
-        self.bm25 = BM25Okapi(self.tokenized_contexts, k1=1.2, b=0.75)
+        self.bm25 = BM25Okapi(self.tokenized_contexts, k1=2.0, b=1.0)
 
         self.p_embedding = None  # get_sparse_embedding()로 생성합니다
         self.indexer = None  # build_faiss()로 생성합니다.
@@ -175,7 +177,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=False,)
 
     retriever = SparseRetrieval(
-        tokenize_fn=tokenizer.tokenize,
+        tokenize_fn=Mecab.morphs,
         data_path=args.data_path,
         context_path=args.context_path,
     )

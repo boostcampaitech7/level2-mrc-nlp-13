@@ -1,0 +1,67 @@
+1. ( BM25(20) + 1.1*DPR(20) ) + rerank 
+    ***** test metrics *****
+    eval_samples =    5211
+    exact_match  = 60.4167
+    f1           = 68.5984
+
+2. DPR
+    ***** test metrics *****
+    eval_samples =    3937
+    exact_match  =    32.5
+    f1           = 36.3129
+
+3. BM25
+    ***** test metrics *****
+    eval_samples =    5349
+    exact_match  = 62.0833
+    f1           = 70.0686
+
+4. BM25 + 0.3*DPR
+    ***** test metrics *****
+    eval_samples =    5354
+    exact_match  = 62.0833
+    f1           = 70.2075
+
+5. BM25 + 0.5*DPR
+    ***** test metrics *****
+    eval_samples =    5358
+    exact_match  =    62.5
+    f1           = 70.7294
+
+6. BM25 + 0.7*DPR
+    ***** test metrics *****
+    eval_samples =    5358
+    exact_match  = 62.0833
+    f1           = 70.3127
+
+7. ( BM25(20) + 0.7*DPR(20) ) + rerank 
+    ***** test metrics *****
+    eval_samples =    5328
+    exact_match  = 61.6667
+    f1           = 70.1261
+
+8. BM25 + rerank (sota)
+    ***** test metrics *****
+    eval_samples =    5328
+    exact_match  = 61.6667
+    f1           = 70.1261
+
+9. ( BM25(20) + 0.5*DPR(20) ) + rerank 
+    ***** test metrics *****
+    eval_samples =    5328
+    exact_match  = 61.6667
+    f1           = 70.1261
+
+10. RRF(BM25(20), DPR(20)) / k = 60
+    ***** test metrics *****
+    eval_samples =    4675
+    exact_match  =   61.25
+    f1           = 68.8336
+
+11. RRF(BM25(100), DPR(100)) / k = 60
+    ***** test metrics *****
+    eval_samples =    4939
+    exact_match  = 61.6667
+    f1           = 69.3702
+
+12. 

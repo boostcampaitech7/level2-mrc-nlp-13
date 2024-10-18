@@ -16,6 +16,7 @@ import json
 import os
 
 
+# 텍스트 데이터를 토큰화하고 입력으로 사용할 수 있도록 변환하는 클래스
 class DatasetFromDataframe(Dataset):
     def __init__(self, df, tokenizer, max_seq_len=512) -> None:
         self.data = df
@@ -26,14 +27,12 @@ class DatasetFromDataframe(Dataset):
 
     def __len__(self):
         return len(self.data)
-
-    # input id masker.
-    # if input text is shorter than max_length, fill with padding token <pad>
-    # if it is longer, cut and and with end token </s>
     
+    # 입력 텍스트를 토큰 ID로 변환하고, 이를 길이에 맞게 처리한 후 입력 ID와 어텐션 마스크를 생성
     def make_input_id_mask(self, tokens, index):
-        input_id = self.tokenizer.convert_tokens_to_ids(tokens)
-        attention_mask = [1] * len(input_id)
+        input_id = self.tokenizer.convert_tokens_to_ids(tokens) # 텍스트를 토크나이저로 토큰화한 후, 이를 토큰 ID로 변환한 리스트
+        attention_mask = [1] * len(input_id) # 토큰 ID 리스트에서 실제 토큰에 해당하는 위치는 1, 패딩 위치는 0으로 채워진 리스트
+        # 입력 시퀀스가 max_seq_len보다 짧으면 <pad> 토큰을 추가하고, 더 길면 자르고 마지막에 </s> (종료 토큰)를 추가
         if len(input_id) < self.max_seq_len:
             while len(input_id) < self.max_seq_len:
                 input_id += [self.tokenizer.pad_token_id]
@@ -44,9 +43,11 @@ class DatasetFromDataframe(Dataset):
             attention_mask = attention_mask[:self.max_seq_len]
         return input_id, attention_mask
 
+    # 특정 인덱스의 데이터를 반환하는 역할
     def __getitem__(self, index):
         record = self.data.iloc[index]
         
+        # 텍스트 앞뒤에 <s> (시작)와 </s> (종료) 토큰을 추가한 후, make_input_id_mask를 사용해 입력 ID와 어텐션 마스크를 생성
         if 'input_id' in record.keys():
             q, a = record['input_id'], record['target_id']
 
@@ -62,6 +63,8 @@ class DatasetFromDataframe(Dataset):
         encoder_input_id, encoder_attention_mask = self.make_input_id_mask(q_tokens, index)
         decoder_input_id, decoder_attention_mask = self.make_input_id_mask(a_tokens, index)
         
+        # labels: 디코더의 타겟 시퀀스를 나타내며, 손실 계산 시 사용된다.
+        # 마찬가지로 패딩을 -100으로 설정해 교차 엔트로피 손실을 계산할 때 무시할 수 있도록 한다.
         labels = self.tokenizer.convert_tokens_to_ids(
             a_tokens[1:(self.max_seq_len + 1)]
         )
@@ -72,6 +75,7 @@ class DatasetFromDataframe(Dataset):
                 # for cross entropy loss masking
                 labels += [-100]
 
+        # 텐서로 변환된 데이터를 반환
         return {
             'input_ids': np.array(encoder_input_id, dtype=np.int_),
             'attention_mask': np.array(encoder_attention_mask, dtype=np.float_),
@@ -80,7 +84,9 @@ class DatasetFromDataframe(Dataset):
             'labels': np.array(labels, dtype=np.int_)
         }
         
-        
+
+# 주어진 파일 경로나 데이터프레임을 바탕으로 데이터를 불러오고,
+# 이를 DataLoader로 묶어 학습, 검증, 테스트 시에 사용할 수 있도록 준비하는 역할
 class OneSourceDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -107,6 +113,7 @@ class OneSourceDataModule(pl.LightningDataModule):
         self.num_workers = 2
         self.train_size = 0.9
 
+    # 이 함수는 데이터셋을 train과 test으로 나누고, 각 세트를 custom_dataset 형식으로 변환
     def setup(self, stage=""):
         df = pd.read_csv(self.filepath) if self.filepath else self.data
         trainset, testset = train_test_split(df, train_size=self.train_size, shuffle=True)
@@ -142,40 +149,43 @@ class OneSourceDataModule(pl.LightningDataModule):
         return test
     
     
-    class Base(pl.LightningModule):
-        def __init__(self, hparams, **kwargs) -> None:
-            super(Base, self).__init__()
-            self.hparams.update(hparams)
+# 모델 파라미터를 최적화하고, 학습이 진행됨에 따라 학습률을 조절하는 작업
+class Base(pl.LightningModule):
+    def __init__(self, hparams, **kwargs) -> None:
+        super(Base, self).__init__()
+        self.hparams.update(hparams)
 
-        def configure_optimizers(self):
-            # Prepare optimizer
-            param_optimizer = list(self.model.named_parameters())
-            no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-            optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(
-                    nd in n for nd in no_decay)], 'weight_decay': 0.01},
-                {'params': [p for n, p in param_optimizer if any(
-                    nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-            optimizer = AdamW(optimizer_grouped_parameters,
-                            lr=self.hparams.lr, correct_bias=False)
-            # warm up lr
-            num_workers = (self.hparams.gpus if self.hparams.gpus is not None else 1) * (self.hparams.num_nodes if self.hparams.num_nodes is not None else 1)
-            data_len = len(self.train_dataloader().dataset)
-            print(f'number of workers {num_workers}, data length {data_len}')
-            num_train_steps = int(data_len / (self.hparams.batch_size * num_workers) * self.hparams.max_epochs)
-            print(f'num_train_steps : {num_train_steps}')
-            num_warmup_steps = int(num_train_steps * self.hparams.warmup_ratio)
-            print(f'num_warmup_steps : {num_warmup_steps}')
-            scheduler = get_cosine_schedule_with_warmup(
-                optimizer,
-                num_warmup_steps=num_warmup_steps, num_training_steps=num_train_steps)
-            lr_scheduler = {'scheduler': scheduler, 
-                            'monitor': 'loss', 'interval': 'step',
-                            'frequency': 1}
-            return [optimizer], [lr_scheduler]
+    # 옵티마이저와 학습률 스케줄러를 설정하는 역할
+    def configure_optimizers(self):
+        # Prepare optimizer
+        param_optimizer = list(self.model.named_parameters())
+        no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight'] # no_decay: 가중치 감쇠(Weight Decay)를 적용하지 않을 파라미터들
+        optimizer_grouped_parameters = [
+            {'params': [p for n, p in param_optimizer if not any(
+                nd in n for nd in no_decay)], 'weight_decay': 0.01},
+            {'params': [p for n, p in param_optimizer if any(
+                   nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        ]
+        optimizer = AdamW(optimizer_grouped_parameters,
+                        lr=self.hparams.lr, correct_bias=False)
+        # warm up lr
+        num_workers = (self.hparams.gpus if self.hparams.gpus is not None else 1) * (self.hparams.num_nodes if self.hparams.num_nodes is not None else 1)
+        data_len = len(self.train_dataloader().dataset)
+        print(f'number of workers {num_workers}, data length {data_len}')
+        num_train_steps = int(data_len / (self.hparams.batch_size * num_workers) * self.hparams.max_epochs)
+        print(f'num_train_steps : {num_train_steps}')
+        num_warmup_steps = int(num_train_steps * self.hparams.warmup_ratio)
+        print(f'num_warmup_steps : {num_warmup_steps}')
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer,
+            num_warmup_steps=num_warmup_steps, num_training_steps=num_train_steps)
+        lr_scheduler = {'scheduler': scheduler, 
+                        'monitor': 'loss', 'interval': 'step',
+                        'frequency': 1}
+        return [optimizer], [lr_scheduler]
     
     
+# KoBART 모델을 이용한 조건부 생성(Conditional Generation) 모델을 정의
 class KoBARTConditionalGeneration(Base):
     def __init__(self, hparams, **kwargs):
         super(KoBARTConditionalGeneration, self).__init__(hparams, **kwargs)
@@ -186,7 +196,7 @@ class KoBARTConditionalGeneration(Base):
         
         self.bos_token = tokenizer.bos_token
         self.eos_token = tokenizer.eos_token
-        
+    
     def forward(self, inputs):
         return self.model(
             input_ids=inputs['input_ids'],
@@ -202,11 +212,13 @@ class KoBARTConditionalGeneration(Base):
         self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=True)
         return loss
     
+    # training_step과 동일한 방식으로 순전파를 수행하고, 손실 값을 계산
     def validation_step(self, batch, batch_idx):
         outs = self(batch)
         loss = outs['loss']
         self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
 
+    # 대화 생성 함수
     def chat(self, text):
         input_ids =  [self.tokenizer.bos_token_id] + self.tokenizer.encode(text) + [self.tokenizer.eos_token_id]
         res_ids = self.model.generate(
@@ -230,54 +242,93 @@ tokenizer = PreTrainedTokenizerFast.from_pretrained(
 )
 
 
-with open("./KorQuAD_v1.0_train.json", "r") as f:
-    korquad = json.load(f)
+with open("../data/wikipedia_documents.json", "r") as f:
+    wikipedia = json.load(f)
     
     
-def getTextPairFromKorquad(korquad):
+# def getTextPairFromKorquad(wiki):
+#     COLUMN_NAMES = ['input_text', 'target_text']
+    
+#     paragraphs = list(chain.from_iterable([[paragraph for paragraph in article['paragraphs']] for article in wiki['data']]))
+
+#     questionPair = pd.DataFrame(list(chain.from_iterable([[
+#         [ questionItem['answers'][0]['text'] + "<unused0>" + paragraph['context'], questionItem['question'] ]
+#         for questionItem in paragraph['qas'] if len(questionItem['answers'])
+#     ] for paragraph in paragraphs])), columns=COLUMN_NAMES)
+    
+#     keywordPair = pd.DataFrame(
+#         [ [paragraph['context'], list(set([ questionItem['answers'][0]['text'] for questionItem in paragraph['qas'] if len(questionItem['answers'])])) ] for paragraph in paragraphs ]
+#         , columns=COLUMN_NAMES
+#     )
+    
+#     keywordCounts = keywordPair['target_text'].apply(len)
+#     keywordPair = keywordPair[keywordCounts > 3]
+#     keywordCounts = keywordCounts.apply(str)
+    
+#     keywordPair['input_text'] = keywordCounts + "<unused1>" + keywordPair['input_text']
+#     keywordPair['target_text'] = keywordPair['target_text'].apply(lambda keywords: "<unused2>".join(keywords))
+    
+#     keywordPair['input_text'] = "키워드 추출" + ": " + keywordPair['input_text']
+#     questionPair['input_text'] = "질문 생성" + ": " + questionPair['input_text']
+    
+#     return questionPair, keywordPair
+
+def getTextPairFromWiki(wiki_df):
+    # 컬럼명 정의
     COLUMN_NAMES = ['input_text', 'target_text']
     
-    paragraphs = list(chain.from_iterable([[paragraph for paragraph in article['paragraphs']] for article in korquad['data']]))
-
-    questionPair = pd.DataFrame(list(chain.from_iterable([[
-        [ questionItem['answers'][0]['text'] + "<unused0>" + paragraph['context'], questionItem['question'] ]
-        for questionItem in paragraph['qas'] if len(questionItem['answers'])
-    ] for paragraph in paragraphs])), columns=COLUMN_NAMES)
+    # 질문-답변 쌍 생성
+    questionPair = pd.DataFrame([
+        [
+            ans['text'][0] + "<unused0>" + row['context'],  # 답변 + 문맥
+            row['question']  # 질문
+        ]
+        for _, row in wiki_df.iterrows() if len(row['answers']['text']) > 0
+        for ans in [row['answers']]  # 답변 추출
+    ], columns=COLUMN_NAMES)
     
-    keywordPair = pd.DataFrame(
-        [ [paragraph['context'], list(set([ questionItem['answers'][0]['text'] for questionItem in paragraph['qas'] if len(questionItem['answers'])])) ] for paragraph in paragraphs ]
-        , columns=COLUMN_NAMES
-    )
+    # 키워드 추출용 데이터 생성
+    keywordPair = pd.DataFrame([
+        [
+            row['context'],  # 문맥
+            list(set([ans['text'][0] for ans in [row['answers']] if len(ans['text']) > 0]))  # 중복 제거한 키워드(답변들)
+        ]
+        for _, row in wiki_df.iterrows()
+    ], columns=COLUMN_NAMES)
     
+    # 키워드의 개수를 계산하여 3개 이상인 문단만 필터링
     keywordCounts = keywordPair['target_text'].apply(len)
     keywordPair = keywordPair[keywordCounts > 3]
-    keywordCounts = keywordCounts.apply(str)
     
+    # 키워드 개수와 함께 input_text를 업데이트
+    keywordCounts = keywordCounts.apply(str)
     keywordPair['input_text'] = keywordCounts + "<unused1>" + keywordPair['input_text']
     keywordPair['target_text'] = keywordPair['target_text'].apply(lambda keywords: "<unused2>".join(keywords))
     
+    # 각 작업에 맞는 prefix 추가
     keywordPair['input_text'] = "키워드 추출" + ": " + keywordPair['input_text']
     questionPair['input_text'] = "질문 생성" + ": " + questionPair['input_text']
     
     return questionPair, keywordPair
 
 
-korquadQ, korquadK = getTextPairFromKorquad(korquad)
 
-korquadQ = korquadQ.sample(frac=1)
-korquadK = korquadK.sample(frac=1)
+wikiQ, wikiK = getTextPairFromWiki(wikipedia)
 
-len(korquadQ), len(korquadK)
+wikiQ = wikiQ.sample(frac=1)
+wikiK = wikiK.sample(frac=1)
 
-korquadQ = korquadQ.iloc[:len(korquadK)]
+len(wikiQ), len(wikiK)
 
-len(korquadQ), len(korquadK)
+wikiQ = wikiQ.iloc[:len(wikiK)]
 
-korquadPair = pd.concat([ korquadQ, korquadK ]).sample(frac=1)
-korquadPair.head()
+len(wikiQ), len(wikiK)
 
-input_lengthes = korquadPair.input_text.str.len()
-target_lengthes = korquadPair.target_text.str.len()
+wikiPair = pd.concat([ wikiQ, wikiK ]).sample(frac=1)
+wikiPair.head()
+
+input_lengthes = wikiPair.input_text.str.len()
+target_lengthes = wikiPair.target_text.str.len()
 
 input_lengthes.describe()
 
@@ -289,30 +340,30 @@ plt.xlim(300, 2300)
 sns.scatterplot(x=input_lengthes, y=target_lengthes)
 plt.axvline(2100)
 
-korquadPair = korquadPair[korquadPair['input_text'].str.len() < 2100]
+wikiPair = wikiPair[wikiPair['input_text'].str.len() < 2100]
 
-input_ids = korquadPair.input_text.apply(tokenizer.tokenize)
-target_ids = korquadPair.target_text.apply(tokenizer.tokenize)
+input_ids = wikiPair.input_text.apply(tokenizer.tokenize)
+target_ids = wikiPair.target_text.apply(tokenizer.tokenize)
 
-korquadPair['input_id'] = input_ids
-korquadPair['target_id'] = target_ids
+wikiPair['input_id'] = input_ids
+wikiPair['target_id'] = target_ids
 
 plt.figure(figsize=(30, 5))
 sns.scatterplot(x=input_ids.apply(len), y=target_ids.apply(len))
 
-korquadPair['input_id'].apply(len).describe()
+wikiPair['input_id'].apply(len).describe()
 
 plt.figure(figsize=(30, 5))
-sns.scatterplot(x=korquadPair['input_id'].apply(len), y=korquadPair['target_id'].apply(len))
+sns.scatterplot(x=wikiPair['input_id'].apply(len), y=wikiPair['target_id'].apply(len))
 plt.axvline(512)
 
-(korquadPair['input_id'].apply(len) < 512).value_counts()
+(wikiPair['input_id'].apply(len) < 512).value_counts()
 
-korquadPair = korquadPair[korquadPair['input_id'].apply(len) < 512]
+wikiPair = wikiPair[wikiPair['input_id'].apply(len) < 512]
 
-korquadPair.head()
+wikiPair.head()
 
-korquadPair['input_text'].apply(lambda text: text.split(":")[0].strip()).value_counts()
+wikiPair['input_text'].apply(lambda text: text.split(":")[0].strip()).value_counts()
 
 KoBARTModel = BartForConditionalGeneration.from_pretrained("gogamza/kobart-base-v2")
 
@@ -330,7 +381,7 @@ model = KoBARTConditionalGeneration({
 }, tokenizer=tokenizer, model=KoBARTModel)
 
 dm = OneSourceDataModule(
-    korquadPair,
+    wikiPair,
     DatasetFromDataframe,
     tokenizer,
     MAX_LENGTH,
@@ -358,16 +409,32 @@ trainer = pl.Trainer(**({
 
 trainer.fit(model, dm)
 
-input_text = korquadPair.sample(frac=1).iloc[0].input_text
+input_text = wikiPair.sample(frac=1).iloc[0].input_text
 print(input_text)
 print()
 print(model.chat(input_text))
 
-def createQuestions(article, num_questions):
-    keywords = model.chat("키워드 추출: " + str(num_questions) + "<unused1>" + article).split("<unused2>")
-    keywords = list(set([keyword.strip() for keyword in keywords]))
-    print(keywords)
+# def createQuestions(article, num_questions):
+#     keywords = model.chat("키워드 추출: " + str(num_questions) + "<unused1>" + article).split("<unused2>")
+#     keywords = list(set([keyword.strip() for keyword in keywords]))
+#     print(keywords)
     
+#     questions = [model.chat("질문 생성: " + keyword + "<unused0>" + article) for keyword in keywords]
+    
+#     return questions
+
+def createQuestions(row, num_questions):
+    # 문서의 context 가져오기
+    article = row['context']
+    
+    # 모델을 이용해 키워드 추출 (키워드 추출: 태스크)
+    keywords = model.chat("키워드 추출: " + str(num_questions) + "<unused1>" + article).split("<unused2>")
+    
+    # 중복 키워드를 제거하고, 양쪽 공백 제거
+    keywords = list(set([keyword.strip() for keyword in keywords]))
+    print("추출된 키워드:", keywords)
+    
+    # 각 키워드에 대해 질문을 생성 (질문 생성: 태스크)
     questions = [model.chat("질문 생성: " + keyword + "<unused0>" + article) for keyword in keywords]
     
     return questions

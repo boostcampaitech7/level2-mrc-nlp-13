@@ -274,6 +274,10 @@ with open("../data/wikipedia_documents.json", "r") as f:
 #     return questionPair, keywordPair
 
 def getTextPairFromWiki(wiki_df):
+    # 딕셔너리 데이터를 DataFrame으로 변환
+    if isinstance(wiki_df, dict):
+        wiki_df = pd.DataFrame.from_dict(wiki_df, orient='index')
+        
     # 컬럼명 정의
     COLUMN_NAMES = ['input_text', 'target_text']
     

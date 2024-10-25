@@ -34,7 +34,7 @@
 | 이름 | 역할 |
 | :---: | --- |
 | **`권지수`** | 데이터 EDA, LLM을 통한 데이터 증강, MRC 모델 탐색 및 parameter 조정, 앙상블 |
-| **`김성은`** | 데이터 EDA(문장 길이, Query문) 데이터 증강(AEDA, Back translation, llm, lmqg), 앙상블 |
+| **`김성은`** | 데이터 EDA(문장 길이, Query문), 데이터 증강(AEDA, Back translation, llm, lmqg), 앙상블 |
 | **`김태원`** | DPR 구현, Hybrid Retriever 구현 및 Score function 세분화, Soft voting 앙상블 구현  |
 | **`이한서`** | MRC 모델 탐색 및 parameter 조정, 데이터 증강 및 변형 시도, Score Normalize 를 통한 Retrieval 방법 개선 , 앙상블 |
 | **`정주현`** | 데이터 EDA, DPR 구현, Kfold 구현, MRC 모델 탐색 및 앙상블 |

@@ -33,11 +33,11 @@
 
 | 이름 | 역할 |
 | :---: | --- |
-| **`권지수`** |  |
-| **`김성은`** |  |
-| **`김태원`** |  |
-| **`이한서`** |  |
-| **`정주현`** |  |
+| **`권지수`** | 데이터 EDA, LLM을 통한 데이터 증강, MRC 모델 탐색 및 parameter 조정, 앙상블 |
+| **`김성은`** | 데이터 EDA(문장 길이, Query문) 데이터 증강(AEDA, Back translation, llm, lmqg), 앙상블 |
+| **`김태원`** | DPR 구현, Hybrid Retriever 구현 및 Score function 세분화, Soft voting 앙상블 구현  |
+| **`이한서`** | MRC 모델 탐색 및 parameter 조정, 데이터 증강 및 변형 시도, Score Normalize 를 통한 Retrieval 방법 개선 , 앙상블 |
+| **`정주현`** | 데이터 EDA, DPR 구현, Kfold 구현, MRC 모델 탐색 및 앙상블 |
 
 <br>
 
@@ -46,7 +46,7 @@
 
 |**프로젝트 주제**| Open-Domain Question Answering : 사전에 구축되어있는 Knowledge resource 에서 질문에 대답할 수 있는 문서를 찾는 NLP Task|
 | :---: | --- |
-|**프로젝트 구현내용**| |
+|**프로젝트 구현내용**| Dense Passage Retrieval (DPR) 모델을 학습하여 질문과 문서 간의 임베딩을 생성한다. 이후, Train dataset을 활용하여 Machine Reading Comprehension (MRC) 모델을 학습하고, 이를 통해 ODQA 예측 파일을 생성한다. 마지막으로, 여러 예측 결과를 앙상블하여 최종적인 답변을 도출한다. |
 |**개발 환경**|**• `GPU` :** Tesla V100 서버 4개 (RAM32G)<br> **• `개발 Tool` :** Jupyter notebook, VS Code [서버 SSH연결]
 |**협업 환경**|**• `Github Repository` :** Baseline 코드 공유 및 버전 관리, 개인 branch를 사용해 작업상황 공유 <br>**• `Notion` :** STS 프로젝트 페이지를 통한 역할분담, 실험 가설 설정 및 결과 공유 <br>**• `SLACK, Zoom` :** 실시간 대면/비대면 회의|
 
@@ -101,21 +101,18 @@
 
 **- b. `Git 관련`** : 각자 branch 생성해 작업하고, 공통으로 사용할 파일은 main에 push 하는 방법으로 협업했다.
 
-**- c. `Submission 관련`** : 대회 마감 2일 전까지는 자유롭게 제출했고, 2일 전부터는 인당 2회씩 분배했다.
+**- c. `Submission 관련`** : 대회 마감 2일 전까지는 자유롭게 제출했고, 5일 전부터는 인당 2회씩 분배했다.
 
 **- d. `Notion 관련`** : 원활한 아이디어 브레인스토밍과 분업을 위해 회의를 할 경우 노션에 기록하며, 연구 및 실험결과의 기록을 공유했다.
 
 <br>
 
-## 🗓 Project Procedure: 총 14일 진행
-- **`(1~3 일차)`**: 
-- **`(3~5 일차)`**: 
-- **`(6~11 일차)`** : 
-- **`(7~12 일차)`** : 
-- **`(11~13 일차)`** :
-
-* 아래는 저희 프로젝트 진행과정을 담은 Gantt차트 입니다. 
-<img width="800" alt="Gantt" src="https://github.com/user-attachments/assets/23c3dacb-95c7-49c0-88df-ebc5b5f9b1a7">
+## 🗓 Project Procedure: 총 4주 진행
+- **`(1~5 일차)`**: 기본 Baseline format 해석 및 script 구현
+- **`(6~12 일차)`**: 데이터 EDA 및 구조 파악, 데이터 전처리, MRC 모델 탐색
+- **`(12~20 일차)`** : MRC 모델 하이퍼 파라미터 튜닝(wandb), Dense Retriever 구현
+- **`(20~25 일차)`** : Dense Retriever 과 Sparse Retriever 을 사용한 Hybrid Retriever 구현
+- **`(26~28 일차)`** : 양상블 진행 
 
 <br>
 

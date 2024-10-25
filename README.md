@@ -48,7 +48,7 @@
 | :---: | --- |
 |**프로젝트 구현내용**| Dense Passage Retrieval (DPR) 모델을 학습하여 질문과 문서 간의 임베딩을 생성한다. 이후, Train dataset을 활용하여 Machine Reading Comprehension (MRC) 모델을 학습하고, 이를 통해 ODQA 예측 파일을 생성한다. 마지막으로, 여러 예측 결과를 앙상블하여 최종적인 답변을 도출한다. |
 |**개발 환경**|**• `GPU` :** Tesla V100 서버 4개 (RAM32G)<br> **• `개발 Tool` :** Jupyter notebook, VS Code [서버 SSH연결]
-|**협업 환경**|**• `Github Repository` :** Baseline 코드 공유 및 버전 관리, 개인 branch를 사용해 작업상황 공유 <br>**• `Notion` :** STS 프로젝트 페이지를 통한 역할분담, 실험 가설 설정 및 결과 공유 <br>**• `SLACK, Zoom` :** 실시간 대면/비대면 회의|
+|**협업 환경**|**• `Github Repository` :** Baseline 코드 공유 및 버전 관리, 개인 branch를 사용해 작업상황 공유 <br>**• `Notion` :** ODQA 프로젝트 페이지를 통한 역할분담, 실험 가설 설정 및 결과 공유 <br>**• `SLACK, Zoom` :** 실시간 대면/비대면 회의|
 
 <br>
 

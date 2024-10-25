@@ -44,7 +44,7 @@
 ## 🖥️ Project Introduction 
 
 
-|**프로젝트 주제**| **Open-Domain Question Answering: ** 사전에 구축되어있는 Knowledge resource 에서 질문에 대답할 수 있는 문서를 찾는 NLP Task|
+|**프로젝트 주제**| Open-Domain Question Answering : 사전에 구축되어있는 Knowledge resource 에서 질문에 대답할 수 있는 문서를 찾는 NLP Task|
 | :---: | --- |
 |**프로젝트 구현내용**| |
 |**개발 환경**|**• `GPU` :** Tesla V100 서버 4개 (RAM32G)<br> **• `개발 Tool` :** Jupyter notebook, VS Code [서버 SSH연결]
@@ -157,7 +157,7 @@ pip install -r requirements.txt
 ### ⌨️ How To Train & Test
 ```bash
 # Dense Retriever 를 위한 passage , question pt 파일 생성
-python3 denst_train.py
+python3 dense_train.py
 
 # train.sh 코드 실행 : MRC 를 위한 Train dataset 에 대한 script file 실행
 chmod +x train.sh # 권한 추가

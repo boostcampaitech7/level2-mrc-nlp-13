@@ -33,11 +33,11 @@
 
 | 이름 | 역할 |
 | :---: | --- |
-| **`권지수`** | **EDA** (라벨 분포 데이터분석), **모델 탐색** (KLUE: 논문 바탕으로 RoBERTa와 ELECTRA 계열 모델 중심으로 탐색), **모델 실험** (team-lucid/deberta-v3-base-korean), **Ensemble 실험** (output 평균 및 가중치 활용) |
-| **`김성은`** | **EDA** (라벨 분포 데이터분석), **모델 탐색** (Encoder, Decoder, Encoder - Decoder 모델로 세분화하여 탐색), **모델 실험** (snunlp-KR-ELECTRA), **Ensemble 실험** (output 평균 및 가중치 활용) |
-| **`김태원`** | **모델 실험** (KR-ELECTRA-discriminator, electra-kor-base, deberta-v3, klue-roberta ), **데이터 증강** (label rescaling(0점 인덱스의 제거 및 5점 인덱스 추가), 단순 복제 데이터 증강(1점~3점 인덱스), train 데이터의 전체적인 맞춤법 교정/불용어 제거/띄어쓰기 교정), **모델 Ensemble** (weighted sum for 3model/4models) |
-| **`이한서`** |**데이터 증강**(조사 대체, Label 분포 균형화), **모델 실험**(team-lucid/deberta-v3-base-korean, monologg/koelectra-base-v3-discriminator, snunlp/KR-ELECTRA), Hyperparameter Tuning(Optuna Template 제작 및 실험)|
-| **`정주현`** &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | **데이터 EDA** (Label 분포, 문장 내의 단어 빈도), **데이터 증강** (Swap sentence1 and sentence2, 유의어 교체(‘너무’, ‘진짜’, ‘정말’)), **모델 선정 및 Ensemble** (T5-base-korean-summarization), Ensemble(Blending Ensemble for 3 or 4 model(meta model = Ridge)) |
+| **`권지수`** |  |
+| **`김성은`** |  |
+| **`김태원`** |  |
+| **`이한서`** |  |
+| **`정주현`** |  |
 
 <br>
 
@@ -108,11 +108,11 @@
 <br>
 
 ## 🗓 Project Procedure: 총 14일 진행
-- **`(1~3 일차)`**: EDA 분석
-- **`(3~5 일차)`**: 데이터 전처리
-- **`(6~11 일차)`** : 데이터 증강
-- **`(7~12 일차)`** : 모델링 및 튜닝
-- **`(11~13 일차)`** : 앙상블
+- **`(1~3 일차)`**: 
+- **`(3~5 일차)`**: 
+- **`(6~11 일차)`** : 
+- **`(7~12 일차)`** : 
+- **`(11~13 일차)`** :
 
 * 아래는 저희 프로젝트 진행과정을 담은 Gantt차트 입니다. 
 <img width="800" alt="Gantt" src="https://github.com/user-attachments/assets/23c3dacb-95c7-49c0-88df-ebc5b5f9b1a7">
@@ -156,37 +156,22 @@ pip install -r requirements.txt
 
 ### ⌨️ How To Train & Test
 ```bash
-#데이터 증강
-python3 augmentation.py
-# train.py 코드 실행 : 모델 학습을 순차적으로 진행
-# 이후 test.py 코드를 순차적으로 실행하여 test
-# config.yaml 내 모델 이름, lr 을 리스트 순서대로 변경하며 train 으로 학습
+# Dense Retriever 를 위한 passage , question pt 파일 생성
+python3 denst_train.py
 
-#plm_name[0], lr[0] -> klue/roberta-base
-python3 train.py
-python3 test.py
+# train.sh 코드 실행 : MRC 를 위한 Train dataset 에 대한 script file 실행
+chmod +x train.sh # 권한 추가
+./train.sh
 
-#plm_name[1], lr[1] -> kykim/electra-kor-base
-python3 train.py
-python3 test.py
+# test.sh 코드 실행 : Retriever 을 사용해서 ODQA task 수행
+chmod +x test.sh # 권한 추가
+./test.sh
 
-#plm_name[2], lr[2] -> team-lucid/deberta-v3-base-korean 
-python3 train.py
-python3 test.py
-
-#plm_name[3], lr[3] -> snunlp/KR-ELECTRA-discriminator
-python3 train.py
-python3 test.py
-
-#plm_name[4], lr[4] -> eenzeenee/t5-base-korean- summarization
-python3 train.py
-python3 test.py
-
+# 이후, nbest_prediction.json 들이 ./nbest 에 저장됨
 ```
 
 ### ⌨️ How To Ensemble
 ```bash
-# 순차적으로 weighted ensemble 진행 후, 출력 결과를 사용해서 blended ensemble 진행
-python3 weighted_ensemble.py # klue/roberta-base, eenzeenee/t5-base-korean-summarization, kykim/electra-kor-base
-python3 blending_ensemble.py # kykim/electra-kor-base , team-lucid/deberta-v3-base-korean , snunlp/KR-ELECTRA-discriminator, weighted_ensemble
+# ./nbest 에 생성된 json 파일들을 모두 확률 값에 따라서 soft voting 하여 ensemble
+python3 softvoting.py
 ```

@@ -13,8 +13,7 @@
 - Private Leader Board 
 <img width="700" alt="private_leader_board" src="https://github.com/user-attachments/assets/0fe1d855-1ac2-4eb2-b7b0-121dc5f13ce9">
 
-- [📈 NLP 13조 Project Wrap-Up report 살펴보기](https://github.com/user-attachments/files/17182231/NLP_13.Wrap-Up.pdf
-)
+- [📈 NLP 13조 Project Wrap-Up report 살펴보기](https://github.com/user-attachments/files/17536172/NLP_13.Wrap-Up.pdf)
 
 <br>
 
@@ -36,7 +35,7 @@
 | **`권지수`** | 데이터 EDA, LLM을 통한 데이터 증강, MRC 모델 탐색 및 parameter 조정, 앙상블 |
 | **`김성은`** | 데이터 EDA(문장 길이, Query문), 데이터 증강(AEDA, Back translation, llm, lmqg), 앙상블 |
 | **`김태원`** | DPR 구현, Hybrid Retriever 구현 및 Score function 세분화, Soft voting 앙상블 구현  |
-| **`이한서`** | MRC 모델 탐색 및 parameter 조정, 데이터 증강 및 변형 시도, Score Normalize 를 통한 Retrieval 방법 개선 , 앙상블 |
+| **`이한서`** | Reader 모델 개선, MRC 모델 탐색 및 parameter 조정, 데이터 증강 및 변형 시도, Score Normalize 를 통한 Retrieval 방법 개선 , 앙상블 |
 | **`정주현`** | 데이터 EDA, DPR 구현, Kfold 구현, MRC 모델 탐색 및 앙상블 |
 
 <br>
@@ -101,7 +100,7 @@
 
 **- b. `Git 관련`** : 각자 branch 생성해 작업하고, 공통으로 사용할 파일은 main에 push 하는 방법으로 협업했다.
 
-**- c. `Submission 관련`** : 대회 마감 2일 전까지는 자유롭게 제출했고, 5일 전부터는 인당 2회씩 분배했다.
+**- c. `Submission 관련`** : 대회 마감 5일 전까지는 자유롭게 제출했고, 5일 전부터는 인당 2회씩 분배했다.
 
 **- d. `Notion 관련`** : 원활한 아이디어 브레인스토밍과 분업을 위해 회의를 할 경우 노션에 기록하며, 연구 및 실험결과의 기록을 공유했다.
 

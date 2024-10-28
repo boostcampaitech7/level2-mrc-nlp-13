@@ -43,7 +43,7 @@
 ## 🖥️ Project Introduction 
 
 
-|**프로젝트 주제**| Open-Domain Question Answering : 사전에 구축되어있는 Knowledge resource 에서 질문에 대답할 수 있는 문서를 찾는 NLP Task|
+|**프로젝트 주제**| Open-Domain Question Answering : 사전에 구축되어있는 Knowledge resource 에서 질문에 대답할 수 있는 문서를 찾고, 해당 문서에서 질문에 맞는 답변을 추출하는 NLP Task|
 | :---: | --- |
 |**프로젝트 구현내용**| Dense Passage Retrieval (DPR) 모델을 학습하여 질문과 문서 간의 임베딩을 생성한다. 이후, Train dataset을 활용하여 Machine Reading Comprehension (MRC) 모델을 학습하고, 이를 통해 ODQA 예측 파일을 생성한다. 마지막으로, 여러 예측 결과를 앙상블하여 최종적인 답변을 도출한다. |
 |**개발 환경**|**• `GPU` :** Tesla V100 서버 4개 (RAM32G)<br> **• `개발 Tool` :** Jupyter notebook, VS Code [서버 SSH연결]
